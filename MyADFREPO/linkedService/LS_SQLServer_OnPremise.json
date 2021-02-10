@@ -1,0 +1,16 @@
+{
+	"name": "LS_SQLServer_OnPremise",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=LAPTOP-JQ3O282E\\SQLEXPRESS;initial catalog=AdventureWorksLT2019;user id=AZUREMSDB",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI3MTBlNGM0ZS02OWFhLTQ2MTktYTA1Ni04Nzk3Nzc2MWYyMjAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IRSqlServer",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

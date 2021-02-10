@@ -1,0 +1,167 @@
+{
+	"name": "4_PL_Copy_IfElse_PARAMETRIZE",
+	"properties": {
+		"activities": [
+			{
+				"name": "CheckingTgtFile",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_TGT_FILE_PARAM",
+						"type": "DatasetReference",
+						"parameters": {
+							"TGT_CONTAINER_PARA": {
+								"value": "@pipeline().parameters.TGT_CONT_PARAM",
+								"type": "Expression"
+							},
+							"TGT_FILE_PARA": {
+								"value": "@pipeline().parameters.TGT_FILE_PARAM",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "CheckingTgtFile",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('CheckingTgtFile').output.exists",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SRC_FILE_PARAM",
+									"type": "DatasetReference",
+									"parameters": {
+										"SRC_CONTAINER_PARA": {
+											"value": "@pipeline().parameters.SRC_CONT_PARAM",
+											"type": "Expression"
+										},
+										"SRC_FILE_PARA": {
+											"value": "@pipeline().parameters.SRC_FILE_PARAM",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_TGT_FILE_PARAM",
+									"type": "DatasetReference",
+									"parameters": {
+										"TGT_CONTAINER_PARA": {
+											"value": "@pipeline().parameters.TGT_CONT_PARAM",
+											"type": "Expression"
+										},
+										"TGT_FILE_PARA": {
+											"value": "@pipeline().parameters.TGT_FILE_PARAM",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SRC_CONT_PARAM": {
+				"type": "string",
+				"defaultValue": "vinudemsource"
+			},
+			"TGT_CONT_PARAM": {
+				"type": "string",
+				"defaultValue": "vinudemotarget"
+			},
+			"SRC_FILE_PARAM": {
+				"type": "string",
+				"defaultValue": "Contact.txt"
+			},
+			"TGT_FILE_PARAM": {
+				"type": "string",
+				"defaultValue": "Contact.txt"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-01-29T10:40:29Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "DS_AZUREDB_Excel_Employe",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AZURESQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "FILE",
+			"table": "employee"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

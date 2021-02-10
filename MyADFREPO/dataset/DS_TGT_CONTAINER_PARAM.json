@@ -1,0 +1,30 @@
+{
+	"name": "DS_TGT_CONTAINER_PARAM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage11",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TGT_CONT_PARAM": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": {
+					"value": "@dataset().TGT_CONT_PARAM",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

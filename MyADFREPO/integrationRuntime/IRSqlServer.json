@@ -1,0 +1,7 @@
+{
+	"name": "IRSqlServer",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "To connect on premise database"
+	}
+}

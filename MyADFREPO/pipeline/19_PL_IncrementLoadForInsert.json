@@ -1,0 +1,226 @@
+{
+	"name": "19_PL_IncrementLoadForInsert",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "NewWaterMark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "OldWaterMark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT  OrderID\n      ,ProductID\n      ,CustomerID\n      ,UnitPrice\n      ,Quantity\n      ,InsertDateTime\n  FROM dbo.orders\n  where InsertDateTime>'@{activity('OldWaterMark').output.firstRow.OldWaterMarkValue}'\n  And \n  InsertDateTime<='@{activity('NewWaterMark').output.firstRow.NewWaterMarkValue}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_AzureSqlTable_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"src_schema": {
+								"value": "@pipeline().parameters.SrcSchema",
+								"type": "Expression"
+							},
+							"src_tblname": {
+								"value": "@pipeline().parameters.SrcTable",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_SQLOnPremTable_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"tgt_schema": {
+								"value": "@pipeline().parameters.TgtSchema",
+								"type": "Expression"
+							},
+							"tgt_table": {
+								"value": "@pipeline().parameters.TgtTable",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "OldWaterMark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select WatermarkValue as OldWaterMarkValue from dbo.watermarktable where TableName='orders'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQLOnPremTable_TGT",
+						"type": "DatasetReference",
+						"parameters": {
+							"tgt_schema": {
+								"value": "@pipeline().parameters.TgtSchema",
+								"type": "Expression"
+							},
+							"tgt_table": {
+								"value": "@pipeline().parameters.TgtTable",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			},
+			{
+				"name": "NewWaterMark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT  max(InsertDateTime) as NewWaterMarkValue  FROM dbo.orders",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSqlTable_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"src_schema": {
+								"value": "@pipeline().parameters.SrcSchema",
+								"type": "Expression"
+							},
+							"src_tblname": {
+								"value": "@pipeline().parameters.SrcTable",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy data1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[spSetWatermark]",
+					"storedProcedureParameters": {
+						"NewTime": {
+							"value": {
+								"value": "@{activity('NewWaterMark').output.firstRow.NewWaterMarkValue}",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"TableName": {
+							"value": "'orders'",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_SQLServer_OnPremise",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"SrcSchema": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"TgtSchema": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"SrcTable": {
+				"type": "string",
+				"defaultValue": "orders"
+			},
+			"TgtTable": {
+				"type": "string",
+				"defaultValue": "orders"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-02-09T10:29:17Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,25 @@
+{
+	"name": "DS_SQL_OnPrem_PERM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLServer_OnPremise",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TABLENAME": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "AZTGT",
+			"table": {
+				"value": "@dataset().TABLENAME",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
